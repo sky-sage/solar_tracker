@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ESP32 Solar Tracker</title>
+<style>
+  body { background:#111; color:#0f0; font-family:Arial; text-align:center; }
+  canvas { margin:20px; }
+</style>
+</head>
+<body>
+
+<h2>ESP32 Solar Tracker</h2>
+
+<canvas id="servo" width="300" height="150"></canvas>
+<canvas id="power" width="300" height="150"></canvas>
+
+<div id="ldr"></div>
+
+<script>
+function drawGauge(ctx, value, max, label) {
+  ctx.clearRect(0,0,300,150);
+  ctx.beginPath();
+  ctx.arc(150,150,120,Math.PI,0);
+  ctx.strokeStyle="#333";
+  ctx.lineWidth=15;
+  ctx.stroke();
+
+  let angle = Math.PI + (value/max)*Math.PI;
+  ctx.beginPath();
+  ctx.arc(150,150,120,Math.PI,angle);
+  ctx.strokeStyle="#0f0";
+  ctx.stroke();
+
+  ctx.fillStyle="#0f0";
+  ctx.font="16px Arial";
+  ctx.fillText(label + ": " + value.toFixed(2), 85, 90);
+}
+
+setInterval(() => {
+  fetch("/data")
+    .then(r => r.json())
+    .then(d => {
+      drawGauge(servo.getContext("2d"), d.angle, 180, "Servo °");
+      drawGauge(power.getContext("2d"), d.voltage, 12, "Voltage V");
+
+      document.getElementById("ldr").innerHTML =
+        "LDRs → " + d.ldr.join(" | ");
+    });
+}, 1000);
+</script>
+</body>
+</html>
